@@ -191,7 +191,7 @@ async def _process_course_grab(websocket: WebSocket, data: dict):
                     {"command": "finished", "std": "任务结束"}
                 )
                 return
-            await asyncio.sleep(2)
+            await asyncio.sleep(0.5)
     except Exception:
         pass
 
