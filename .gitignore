@@ -11,6 +11,7 @@ debug_*.png
 # Database & secrets
 accounts.db
 .admin_secret
+grab.log
 
 # Virtual environment
 venv/
