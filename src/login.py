@@ -511,7 +511,7 @@ class CourseGrabber:
                 teacher_column = 6
                 min_cols = 7  # 至少需要7列才能访问teacher_column
             elif self.config.course_type == "elective":
-                url = "https://aa.bjtu.edu.cn/course_selection/courseselecttask/selects_action/?action=load&iframe=cross&page=1&perpage=1000"
+                url = "https://aa.bjtu.edu.cn/course_selection/courseselecttask/selects_action/?action=load&iframe=school&page=1&perpage=1000"
                 table_id = 0
                 name_column = 2
                 number_column = 3
