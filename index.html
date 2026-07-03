@@ -574,7 +574,8 @@ createApp({
     // ── Computed ──
     const isValidCourseList = computed(() => {
       if (!courseList.value) return true;
-      return /^([\w\s\u4e00-\u9fa5]+[,，])*[\w\s\u4e00-\u9fa5]+$/.test(courseList.value.trim());
+      const normalized = courseList.value.replace(/[,，、﹐]/g, ',');
+      return /^([\w\s\u4e00-\u9fa5]+,)*[\w\s\u4e00-\u9fa5]+$/.test(normalized.trim());
     });
 
     const canStart = computed(() => {
@@ -684,7 +685,7 @@ createApp({
         password: password.value,
         apiUsername: apiUsername.value,
         apiPassword: apiPassword.value,
-        courseList: courseList.value,
+        courseList: courseList.value.replace(/[,，、﹐]/g, ','),
         courseType: courseType.value,
         seniorCheck: seniorCheck.value,
       };
