@@ -442,7 +442,7 @@
           <label>选课列表</label>
           <textarea v-model="courseList" rows="3" placeholder="课程名或教师名，逗号分隔，如：大学美育,杨梦婉"></textarea>
           <div class="input-hint" :class="{ error: courseList && !isValidCourseList }">
-            {{ !courseList ? '输入课程名或教师名，多个用英文逗号分隔' : (isValidCourseList ? '' : '格式错误：只允许中英文、数字和逗号') }}
+            {{ !courseList ? '输入课程名或教师名，多个用逗号分隔' : (isValidCourseList ? '' : '格式错误：只允许中英文、数字和逗号') }}
           </div>
         </div>
 
@@ -574,7 +574,7 @@ createApp({
     // ── Computed ──
     const isValidCourseList = computed(() => {
       if (!courseList.value) return true;
-      return /^([\w\s\u4e00-\u9fa5]+,)*[\w\s\u4e00-\u9fa5]+$/.test(courseList.value);
+      return /^([\w\s\u4e00-\u9fa5]+[,，])*[\w\s\u4e00-\u9fa5]+$/.test(courseList.value.trim());
     });
 
     const canStart = computed(() => {
