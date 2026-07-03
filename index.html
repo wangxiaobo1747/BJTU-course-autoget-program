@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BJTU 选课助手</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
+<style>
+  :root {
+    --primary: #4f6ef7;
+    --primary-hover: #3b5de7;
+    --primary-light: #eef1fe;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --danger-light: #fef2f2;
+    --warning: #f59e0b;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header h1 .icon {
+    width: 32px; height: 32px;
+    background: var(--primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .status-badge .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .status-connected { background: #f0fdf4; color: #15803d; }
+  .status-connected .dot { background: var(--success); }
+  .status-disconnected { background: #fef2f2; color: #b91c1c; }
+  .status-disconnected .dot { background: var(--danger); }
+  .status-connecting { background: #fffbeb; color: #b45309; }
+  .status-connecting .dot { background: var(--warning); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
+
+  /* ── Main Grid ── */
+  .main {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+  }
+  .card-body { padding: 24px; }
+
+  /* ── Form ── */
+  .form-group {
+    margin-bottom: 18px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  input[type="text"],
+  input[type="password"],
+  textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: var(--font);
+    color: var(--text);
+    background: #fafbfc;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79,110,247,.12);
+    background: white;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  .input-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .input-hint.error { color: var(--danger); }
+
+  /* ── Radio Group ── */
+  .radio-group {
+    display: flex;
+    gap: 12px;
+  }
+  .radio-option {
+    flex: 1;
+    position: relative;
+  }
+  .radio-option input { position: absolute; opacity: 0; pointer-events: none; }
+  .radio-option label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all .2s;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  .radio-option input:checked + label {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+
+  /* ── Checkbox ── */
+  .checkbox-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .checkbox-wrap input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 10px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: var(--font);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+    box-shadow: 0 2px 8px rgba(79,110,247,.3);
+  }
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: #dc2626;
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1.5px solid var(--border);
+  }
+  .btn-outline:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .btn-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  /* ── Right Panel ── */
+  .side-panel { display: flex; flex-direction: column; gap: 24px; }
+  .captcha-box {
+    width: 100%;
+    aspect-ratio: 2/1;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1.5px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .captcha-box img {
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: pixelated;
+  }
+  .captcha-box .placeholder {
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .captcha-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .captcha-stat {
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .captcha-stat .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .captcha-stat .label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Balance ── */
+  .balance-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+  }
+  .balance-row .amount {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* ── Log Panel ── */
+  .log-section {
+    grid-column: 1 / -1;
+  }
+  .log-container {
+    height: 40vh;
+    min-height: 250px;
+    overflow-y: auto;
+    padding: 16px;
+    background: #0f172a;
+    border-radius: 0 0 var(--radius) var(--radius);
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .log-container::-webkit-scrollbar { width: 6px; }
+  .log-container::-webkit-scrollbar-track { background: transparent; }
+  .log-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  .log-entry {
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .log-cmd {
+    color: #94a3b8;
+    font-weight: 600;
+  }
+  .log-std { color: #e2e8f0; }
+  .log-success {
+    color: #4ade80;
+    background: rgba(34,197,94,.08);
+  }
+  .log-error {
+    color: #f87171;
+    background: rgba(239,68,68,.08);
+  }
+  .log-init {
+    color: #60a5fa;
+  }
+  .log-empty {
+    color: #475569;
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  /* ── Link ── */
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .main { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .header { padding: 12px 16px; }
+    .header h1 { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Header -->
+  <div class="header">
+    <h1>
+      <span class="icon">BJ</span>
+      BJTU 选课助手
+    </h1>
+    <span class="status-badge" :class="statusClass">
+      <span class="dot"></span>
+      {{ statusText }}
+    </span>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Left: Config Form -->
+    <div class="card">
+      <div class="card-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        账号配置
+      </div>
+      <div class="card-body">
+        <!-- Course Type -->
+        <div class="form-group">
+          <label>课程类型</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="ct-required" value="required" v-model="courseType">
+              <label for="ct-required">必修课</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="ct-elective" value="elective" v-model="courseType">
+              <label for="ct-elective">任选课</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- MIS Credentials -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>MIS 账号</label>
+            <input type="text" v-model="username" placeholder="学号">
+          </div>
+          <div class="form-group">
+            <label>MIS 密码</label>
+            <input type="password" v-model="password" placeholder="MIS 密码">
+          </div>
+        </div>
+
+        <!-- Tujian API -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>图鉴 API 账号</label>
+            <input type="text" v-model="apiUsername" placeholder="图鉴用户名">
+            <div class="input-hint">
+              没有账号？<a href="https://www.ttshitu.com/" target="_blank" rel="noopener noreferrer">去注册</a>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>图鉴 API 密码</label>
+            <input type="password" v-model="apiPassword" placeholder="图鉴密码">
+          </div>
+        </div>
+
+        <!-- Course List -->
+        <div class="form-group">
+          <label>选课列表</label>
+          <textarea v-model="courseList" rows="3" placeholder="课程名或教师名，逗号分隔，如：大学美育,杨梦婉"></textarea>
+          <div class="input-hint" :class="{ error: courseList && !isValidCourseList }">
+            {{ !courseList ? '输入课程名或教师名，多个用英文逗号分隔' : (isValidCourseList ? '' : '格式错误：只允许中英文、数字和逗号') }}
+          </div>
+        </div>
+
+        <!-- Senior Check -->
+        <div class="form-group">
+          <label class="checkbox-wrap">
+            <input type="checkbox" v-model="seniorCheck">
+            抢高级课（勾选后包含高级课课堂）
+          </label>
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-group">
+          <button v-if="!isRunning"
+                  class="btn btn-primary"
+                  :disabled="!canStart"
+                  @click="startGrab">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            开始抢课
+          </button>
+          <button v-else
+                  class="btn btn-danger"
+                  @click="stopGrab">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+            停止
+          </button>
+          <button class="btn btn-outline" @click="clearLog">
+            清空日志
+          </button>
+        </div>
+        <div v-if="!canStart && !isRunning" class="input-hint error" style="margin-top:8px;">
+          {{ !courseType ? '请选择课程类型' : (!isValidCourseList ? '请正确填写选课列表' : (!connected ? '等待服务连接...' : '请填写必要信息')) }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Status Panel -->
+    <div class="side-panel">
+      <!-- Captcha Card -->
+      <div class="card">
+        <div class="card-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          验证码
+        </div>
+        <div class="card-body">
+          <div class="captcha-box">
+            <img v-if="captchaImage" :src="captchaImage" alt="captcha">
+            <span v-else class="placeholder">等待验证码...</span>
+          </div>
+          <div class="captcha-info" style="margin-top: 12px;">
+            <div class="captcha-stat">
+              <div class="value">{{ captchaResult || '--' }}</div>
+              <div class="label">识别结果</div>
+            </div>
+            <div class="captcha-stat">
+              <div class="value">{{ captchaTime || '--' }}</div>
+              <div class="label">识别耗时</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Balance Card -->
+      <div class="card">
+        <div class="card-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 010 7H6"/></svg>
+          图鉴余额
+        </div>
+        <div class="card-body">
+          <div class="balance-row">
+            <span class="amount">{{ balanceDisplay }}</span>
+            <button class="btn btn-outline" style="padding:6px 16px;font-size:13px;" @click="fetchBalance">
+              查询
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log Section -->
+    <div class="card log-section">
+      <div class="card-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        运行日志
+        <span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--text-secondary);">
+          {{ messages.length }} 条记录
+        </span>
+      </div>
+      <div class="log-container" ref="logContainer">
+        <div v-if="messages.length === 0" class="log-empty">
+          暂无日志，点击"开始抢课"开始
+        </div>
+        <div v-for="(msg, i) in messages" :key="i" class="log-entry" :class="logClass(msg)">
+          <span v-if="msg.command && msg.command !== 'finished'" class="log-cmd">[{{ msg.command }}] </span>
+          <span :class="logTextClass(msg)">{{ msg.std || msg.error || '' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+
+createApp({
+  setup() {
+    // ── State ──
+    const ws = ref(null);
+    const connected = ref(false);
+    const connecting = ref(false);
+    const isRunning = ref(false);
+
+    const username = ref('');
+    const password = ref('');
+    const apiUsername = ref('');
+    const apiPassword = ref('');
+    const courseList = ref('');
+    const courseType = ref('');
+    const seniorCheck = ref(false);
+
+    const captchaImage = ref('');
+    const captchaResult = ref('');
+    const captchaTime = ref('');
+    const balance = ref(null);
+
+    const messages = ref([]);
+    const logContainer = ref(null);
+
+    // ── Computed ──
+    const isValidCourseList = computed(() => {
+      if (!courseList.value) return true;
+      return /^([\w\s\u4e00-\u9fa5]+,)*[\w\s\u4e00-\u9fa5]+$/.test(courseList.value);
+    });
+
+    const canStart = computed(() => {
+      return connected.value
+        && courseType.value
+        && username.value
+        && password.value
+        && isValidCourseList.value
+        && courseList.value.trim().length > 0;
+    });
+
+    const statusClass = computed(() => {
+      if (connected.value) return 'status-connected';
+      if (connecting.value) return 'status-connecting';
+      return 'status-disconnected';
+    });
+
+    const statusText = computed(() => {
+      if (connected.value) return '已连接';
+      if (connecting.value) return '连接中...';
+      return '未连接';
+    });
+
+    const balanceDisplay = computed(() => {
+      if (balance.value === null) return '--';
+      return '\u00a5' + balance.value.toFixed(2);
+    });
+
+    // ── Persistence (Server-side, silent) ──
+
+    async function saveAccountToServer() {
+      if (!username.value) return;
+      try {
+        await fetch('/api/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mis_username: username.value,
+            mis_password: password.value,
+            tujian_username: apiUsername.value,
+            tujian_password: apiPassword.value,
+            course_list: courseList.value,
+            course_type: courseType.value,
+            senior_check: seniorCheck.value,
+          }),
+        });
+      } catch(e) {
+        console.warn('Failed to save account:', e);
+      }
+    }
+
+    // ── WebSocket ──
+    function connectWS() {
+      if (ws.value && (ws.value.readyState === WebSocket.OPEN || ws.value.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+      connecting.value = true;
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const socket = new WebSocket(proto + '//' + location.host + '/ws');
+
+      socket.onopen = () => {
+        connected.value = true;
+        connecting.value = false;
+        addMessage({ command: '\u521d\u59cb\u5316', std: 'WebSocket \u670d\u52a1\u5df2\u5c31\u7eea' });
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleMessage(data);
+        } catch(e) {
+          console.error('Parse error:', e);
+        }
+      };
+
+      socket.onclose = () => {
+        connected.value = false;
+        connecting.value = false;
+        isRunning.value = false;
+        setTimeout(connectWS, 3000);
+      };
+
+      socket.onerror = () => {
+        connecting.value = false;
+      };
+
+      ws.value = socket;
+    }
+
+    function handleMessage(data) {
+      if (data.command === 'captcha-image') {
+        captchaImage.value = data.image || '';
+        captchaResult.value = String(data.result || '');
+        captchaTime.value = data.process_time || '';
+        return;
+      }
+
+      if (data.command === 'finished' || data.command === 'Python error') {
+        isRunning.value = false;
+      }
+
+      if (data.command === 'finished') {
+        return;
+      }
+
+      addMessage(data);
+    }
+
+    function addMessage(msg) {
+      messages.value.push(msg);
+      nextTick(() => {
+        if (logContainer.value) {
+          logContainer.value.scrollTop = logContainer.value.scrollHeight;
+        }
+      });
+    }
+
+    // ── Actions ──
+    function startGrab() {
+      if (!canStart.value || isRunning.value) return;
+      saveAccountToServer();
+      fetchBalance();
+      isRunning.value = true;
+      captchaImage.value = '';
+      captchaResult.value = '';
+      captchaTime.value = '';
+
+      const payload = {
+        command: 'login1',
+        username: username.value,
+        password: password.value,
+        apiUsername: apiUsername.value,
+        apiPassword: apiPassword.value,
+        courseList: courseList.value,
+        courseType: courseType.value,
+        seniorCheck: seniorCheck.value,
+      };
+      ws.value.send(JSON.stringify(payload));
+    }
+
+    function stopGrab() {
+      if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+        ws.value.send(JSON.stringify({ command: 'stop' }));
+      }
+      isRunning.value = false;
+    }
+
+    function clearLog() {
+      messages.value = [];
+    }
+
+    async function fetchBalance() {
+      if (!apiUsername.value || !apiPassword.value) return;
+      try {
+        const url = 'https://api.ttshitu.com/queryAccountInfo.json?username='
+          + encodeURIComponent(apiUsername.value)
+          + '&password=' + encodeURIComponent(apiPassword.value);
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.success) {
+          balance.value = parseFloat(data.data.balance);
+        }
+      } catch(e) {
+        console.warn('Balance fetch failed:', e);
+      }
+    }
+
+    // ── Log styling ──
+    function logClass(msg) {
+      if (msg.success) return 'log-success';
+      if (msg.error) return 'log-error';
+      return '';
+    }
+
+    function logTextClass(msg) {
+      if (msg.success) return 'log-success';
+      if (msg.error) return 'log-error';
+      if (msg.command === '\u521d\u59cb\u5316') return 'log-init';
+      return 'log-std';
+    }
+
+    // ── Lifecycle ──
+    onMounted(() => {
+      connectWS();
+    });
+
+    return {
+      connected, connecting, isRunning,
+      username, password, apiUsername, apiPassword,
+      courseList, courseType, seniorCheck,
+      captchaImage, captchaResult, captchaTime,
+      balance, balanceDisplay,
+      messages, logContainer,
+      isValidCourseList, canStart,
+      statusClass, statusText,
+      startGrab, stopGrab, clearLog, fetchBalance,
+      logClass, logTextClass,
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

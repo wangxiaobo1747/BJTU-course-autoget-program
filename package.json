@@ -1,0 +1,35 @@
+{
+  "name": "web-get-course",
+  "author": "hyskr",
+  "version": "1.1.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "electron-json-storage": "^4.6.0",
+    "lodash": "^4.17.21",
+    "tree-kill": "^1.2.2",
+    "ws": "^8.18.0"
+  },
+  "build": {
+    "productName": "北京交通大学自动选课软件",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "src/icon.ico"
+    },
+    "asarUnpack": [
+      "src/bjtupythonstub.exe",
+      "src/omis.onnx",
+      "src/login.py"
+    ]
+  }
+}

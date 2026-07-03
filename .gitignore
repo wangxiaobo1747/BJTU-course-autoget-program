@@ -1,0 +1,31 @@
+dist/
+node_modules/
+bjtupythonstub.exe
+__pycache__/
+build/
+
+# Debug files
+debug_*.html
+debug_*.png
+
+# Database & secrets
+accounts.db
+.admin_secret
+
+# Virtual environment
+venv/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+*.pyc
+*.pyo
