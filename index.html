@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>BJTU 选课助手</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
 <style>
@@ -574,8 +577,10 @@ createApp({
     // ── Computed ──
     const isValidCourseList = computed(() => {
       if (!courseList.value) return true;
-      const normalized = courseList.value.replace(/[,，、﹐]/g, ',');
-      return /^([\w\s\u4e00-\u9fa5]+,)*[\w\s\u4e00-\u9fa5]+$/.test(normalized.trim());
+      let normalized = courseList.value.trim().replace(/[^\w\s\u4e00-\u9fa5]/g, ',');
+      normalized = normalized.replace(/,+/g, ',').replace(/^,|,$/g, '');
+      if (!normalized) return false;
+      return /^[\w\s\u4e00-\u9fa5]+(,[\w\s\u4e00-\u9fa5]+)*$/.test(normalized);
     });
 
     const canStart = computed(() => {
@@ -685,7 +690,7 @@ createApp({
         password: password.value,
         apiUsername: apiUsername.value,
         apiPassword: apiPassword.value,
-        courseList: courseList.value.replace(/[,，、﹐]/g, ','),
+        courseList: courseList.value.trim().replace(/[^\w\s\u4e00-\u9fa5]/g, ',').replace(/,+/g, ',').replace(/^,|,$/g, ''),
         courseType: courseType.value,
         seniorCheck: seniorCheck.value,
       };
