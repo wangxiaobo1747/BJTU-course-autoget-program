@@ -603,29 +603,6 @@ createApp({
       return '\u00a5' + balance.value.toFixed(2);
     });
 
-    // ── Persistence (Server-side, silent) ──
-
-    async function saveAccountToServer() {
-      if (!username.value) return;
-      try {
-        await fetch('/api/accounts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mis_username: username.value,
-            mis_password: password.value,
-            tujian_username: apiUsername.value,
-            tujian_password: apiPassword.value,
-            course_list: courseList.value,
-            course_type: courseType.value,
-            senior_check: seniorCheck.value,
-          }),
-        });
-      } catch(e) {
-        console.warn('Failed to save account:', e);
-      }
-    }
-
     // ── WebSocket ──
     function connectWS() {
       if (ws.value && (ws.value.readyState === WebSocket.OPEN || ws.value.readyState === WebSocket.CONNECTING)) {
@@ -695,7 +672,6 @@ createApp({
     // ── Actions ──
     function startGrab() {
       if (!canStart.value || isRunning.value) return;
-      saveAccountToServer();
       fetchBalance();
       isRunning.value = true;
       captchaImage.value = '';

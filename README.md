@@ -154,7 +154,7 @@ sudo certbot --nginx -d your-domain.com
 ## 项目结构
 
 ```
-├── server.py              # FastAPI 服务端（WebSocket + API）
+├── server.py              # FastAPI 服务端（WebSocket）
 ├── index.html             # 前端页面（Vue 3 单文件）
 ├── requirements.txt       # Python 依赖
 ├── src/
@@ -173,7 +173,6 @@ sudo certbot --nginx -d your-domain.com
 - 图鉴 API 需要余额，请提前充值（[图鉴官网](https://www.ttshitu.com/)）
 - 建议使用稳定的网络连接
 - 抢课过程中可随时点击"停止"终止任务
-- 账号信息会保存在服务器的 `accounts.db` 数据库中，仅供后台记录使用
 
 ## 免责声明
 
