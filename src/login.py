@@ -371,8 +371,8 @@ class CourseGrabber:
                 "result": "正在识别...",
                 "process_time": "",  # 显示为毫秒
             }
-            result = await asyncio.to_thread(
-                base64_api, img, 16, self.config.api_username, self.config.api_password
+            result = base64_api(
+                img, 16, self.config.api_username, self.config.api_password
             )
             process_time = round((time.time() - start_time) * 1000)
 
@@ -400,6 +400,19 @@ class CourseGrabber:
                 data=payload,
                 allow_redirects=False,
             )
+            await asyncio.sleep(0.1)
+
+            self.session.headers.update(
+                {
+                    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                    "cache-control": "max-age=0",
+                }
+            )
+
+            response = await asyncio.to_thread(
+                self.session.get,
+                "https://aa.bjtu.edu.cn/course_selection/courseselecttask/selects/",
+            )
         except requests.exceptions.RequestException as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             line_no = exc_traceback.tb_lineno
@@ -408,20 +421,6 @@ class CourseGrabber:
 
         text = response.text
         messages = re.findall(r'message \+= "(.*)<br/>";', text)
-        if not messages:
-            # POST 响应中没有消息，重新获取页面确认结果
-            self.session.headers.update(
-                {
-                    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                    "cache-control": "max-age=0",
-                }
-            )
-            page_resp = await asyncio.to_thread(
-                self.session.get,
-                "https://aa.bjtu.edu.cn/course_selection/courseselecttask/selects/",
-            )
-            text = page_resp.text
-            messages = re.findall(r'message \+= "(.*)<br/>";', text)
         if messages:
             yield {"command": "抢课", "std": messages[0]}
 
@@ -429,7 +428,7 @@ class CourseGrabber:
         """获取并处理课程数据"""
         try:
             # 获取所有课程数据
-            courses = await asyncio.to_thread(self.get_available_courses)
+            courses = self.get_available_courses()
             if not courses:
                 yield {"command": "选课", "error": "数据未成功获取..."}
                 return
@@ -650,6 +649,6 @@ class WebSocketServer:
                         json.dumps({"command": "finished", "std": "任务结束"})
                     )
                     return
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(2)
 
         await websocket.send(json.dumps({"command": "success", "std": "任务结束"}))
